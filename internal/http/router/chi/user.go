@@ -4,14 +4,19 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"auth/internal/http/handler"
+	"auth/internal/http/middleware"
 )
 
 func userRouter(h *handler.Handler) func(r chi.Router) {
 	return func(r chi.Router) {
-		r.Post("/", h.CreateUser())
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Auth)
+			r.Post("/", h.CreateUser())
+			r.Put("/{id}", h.UpdateUserByID())
+			r.Delete("/{id}", h.DeleteUserByID())
+		})
+
 		r.Get("/{id}", h.GetUserByID())
 		r.Get("/", h.GetUserAll())
-		r.Put("/{id}", h.UpdateUserByID())
-		r.Delete("/{id}", h.DeleteUserByID())
 	}
 }

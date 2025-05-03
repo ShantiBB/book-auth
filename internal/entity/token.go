@@ -7,13 +7,7 @@ type Token struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-type AccessClaims struct {
-	Sub  int64  `json:"sub"`
-	Role string `json:"role"`
-	jwt.RegisteredClaims
-}
-
-type RefreshClaims struct {
+type Claims struct {
 	Sub  int64  `json:"sub"`
 	Role string `json:"role"`
 	jwt.RegisteredClaims

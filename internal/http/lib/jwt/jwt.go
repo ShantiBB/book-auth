@@ -3,8 +3,6 @@ package jwt
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-
 	"auth/internal/entity"
 )
 
@@ -16,46 +14,17 @@ var (
 )
 
 func GenerateAccessToken(sub int64, role string) (string, error) {
-	claims := entity.AccessClaims{
-		Sub:  sub,
-		Role: role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(accessTokenTTL)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(accessSecret)
+	return GenerateToken(sub, role, accessTokenTTL, accessSecret)
 }
 
 func GenerateRefreshToken(sub int64, role string) (string, error) {
-	claims := entity.RefreshClaims{
-		Sub:  sub,
-		Role: role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(refreshTokenTTL)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(refreshSecret)
+	return GenerateToken(sub, role, refreshTokenTTL, refreshSecret)
 }
 
-func ParseRefreshToken(tokenStr string) (*entity.RefreshClaims, error) {
-	tokenFunc := func(t *jwt.Token) (interface{}, error) {
-		return refreshSecret, nil
-	}
-	token, err := jwt.ParseWithClaims(tokenStr, &entity.RefreshClaims{}, tokenFunc)
-	if err != nil {
-		return nil, err
-	}
+func GetClaimsAccessToken(tokenStr string) (*entity.Claims, error) {
+	return parseToken(tokenStr, accessSecret)
+}
 
-	claims, ok := token.Claims.(*entity.RefreshClaims)
-	if !ok || !token.Valid {
-		return nil, jwt.ErrTokenInvalidClaims
-	}
-
-	return claims, nil
+func GetClaimsRefreshToken(tokenStr string) (*entity.Claims, error) {
+	return parseToken(tokenStr, refreshSecret)
 }

@@ -51,7 +51,7 @@ func (s *Service) Login(ctx context.Context, u *entity.User) (*entity.Token, err
 func (s *Service) Refresh(token string) (*entity.Token, error) {
 	const op = "user.service.RefreshToken"
 
-	claims, err := jwt.ParseRefreshToken(token)
+	claims, err := jwt.GetClaimsRefreshToken(token)
 	if err != nil {
 		s.log.Error("failed to parse refresh token", "op", op, "error", err)
 		return nil, err
