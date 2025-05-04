@@ -15,14 +15,15 @@ func (r *Repository) CreateUser(ctx context.Context, u *entity.User) error {
 	query := `INSERT INTO users (username, email, password_hash)
 			  VALUES ($1, $2, $3) RETURNING id, role`
 
-	var pgErr *pgconn.PgError
 	err := r.db.QueryRow(ctx, query, u.Username, u.Email, u.PasswordHash).Scan(&u.ID, &u.Role)
 
+	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == "23505" {
 			return DuplicateError
 		}
 	}
+
 	if err != nil {
 		return err
 	}
@@ -96,6 +97,14 @@ func (r *Repository) UpdateUserByID(ctx context.Context, u *entity.User) error {
 			  RETURNING role`
 
 	err := r.db.QueryRow(ctx, query, u.Username, u.Email, u.ID).Scan(&u.Role)
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == "23505" {
+			return DuplicateError
+		}
+	}
+
 	if errors.Is(err, pgx.ErrNoRows) {
 		return sql.ErrNoRows
 	}

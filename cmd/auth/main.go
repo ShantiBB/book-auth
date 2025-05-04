@@ -19,9 +19,13 @@ import (
 // @version 1.0
 // @description This is the authentication API service.
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 // @host localhost:8085
 // @BasePath /
-
 // @schemes http
 func main() {
 	logHandler := slog.NewTextHandler(

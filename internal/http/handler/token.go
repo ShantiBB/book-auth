@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -117,6 +118,12 @@ func (h *Handler) Login() http.HandlerFunc {
 		}
 
 		token, err := h.svc.Login(r.Context(), user)
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+			render.JSON(w, r, response.Error("user not found"))
+			return
+		}
+
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to login"))

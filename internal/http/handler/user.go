@@ -26,7 +26,8 @@ type UserService interface {
 	DeleteUserByID(ctx context.Context, id int64) error
 }
 
-// CreateUser @Summary      Create new user
+// CreateUser   godoc
+// @Summary      Create new user
 // @Description  Register a new user and return basic info
 // @Tags         users
 // @Accept       json
@@ -34,9 +35,11 @@ type UserService interface {
 // @Param        user  body      request.UserCreate  true  "New user"
 // @Success      201   {object}  response.UserShort
 // @Failure      400   {object}  response.Response
+// @Failure      401  {object}  response.Response
 // @Failure      409   {object}  response.Response
 // @Failure      500   {object}  response.Response
 // @Router       /users [post]
+// @Security     BearerAuth
 func (h *Handler) CreateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request.UserCreate
@@ -88,7 +91,7 @@ func (h *Handler) CreateUser() http.HandlerFunc {
 	}
 }
 
-// GetUserByID godoc
+// GetUserByID   godoc
 // @Summary      Get user by ID
 // @Description  Get all user info by ID
 // @Tags         users
@@ -173,9 +176,11 @@ func (h *Handler) GetUserAll() http.HandlerFunc {
 // @Param        user body           request.UserUpdate  true  "User update request"
 // @Success      200  {object}  response.UserShort
 // @Failure      400  {object}  response.Response
+// @Failure      401  {object}  response.Response
 // @Failure      404  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Router       /users/{id} [put]
+// @Security     BearerAuth
 func (h *Handler) UpdateUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))
@@ -206,6 +211,13 @@ func (h *Handler) UpdateUserByID() http.HandlerFunc {
 		}
 
 		err = h.svc.UpdateUserByID(r.Context(), user)
+
+		if errors.Is(err, postgres.DuplicateError) {
+			w.WriteHeader(http.StatusConflict)
+			render.JSON(w, r, response.Error("username or email already exists"))
+			return
+		}
+
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, response.Error("user not found"))
@@ -235,9 +247,11 @@ func (h *Handler) UpdateUserByID() http.HandlerFunc {
 // @Produce      json
 // @Param        id   path      int  true  "User ID"
 // @Success      204  "No Content"
+// @Failure      401  {object}  response.Response
 // @Failure      404  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Router       /users/{id} [delete]
+// @Security     BearerAuth
 func (h *Handler) DeleteUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))
