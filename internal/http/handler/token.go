@@ -21,6 +21,18 @@ type TokenService interface {
 	Refresh(token string) (string, error)
 }
 
+// Register godoc
+// @Summary      Register new user
+// @Description  Creates a new user account and returns auth token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        user  body      request.Register  true  "Registration data"
+// @Success      200   {object}  response.Tokens
+// @Failure      400   {object}  response.Response
+// @Failure      409   {object}  response.Response
+// @Failure      500   {object}  response.Response
+// @Router       /auth/register [post]
 func (h *Handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request.Register
@@ -63,10 +75,24 @@ func (h *Handler) Register() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		render.JSON(w, r, token)
+		render.JSON(w, r, response.Tokens{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
+		})
 	}
 }
 
+// Login godoc
+// @Summary      Login user
+// @Description  Authenticates user and returns auth token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        user  body      request.Login  true  "Login credentials"
+// @Success      200   {object}  response.Tokens
+// @Failure      400   {object}  response.Response
+// @Failure      500   {object}  response.Response
+// @Router       /auth/login [post]
 func (h *Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request.Login
@@ -98,10 +124,24 @@ func (h *Handler) Login() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		render.JSON(w, r, token)
+		render.JSON(w, r, response.Tokens{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
+		})
 	}
 }
 
+// Refresh godoc
+// @Summary      Refresh access token
+// @Description  Returns a new access token using refresh token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        token  body      request.Refresh  true  "Refresh token request"
+// @Success      200    {object}  response.AccessToken
+// @Failure      400    {object}  response.Response
+// @Failure      500    {object}  response.Response
+// @Router       /auth/refresh [post]
 func (h *Handler) Refresh() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request.Refresh
