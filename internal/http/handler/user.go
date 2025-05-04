@@ -26,9 +26,20 @@ type UserService interface {
 	DeleteUserByID(ctx context.Context, id int64) error
 }
 
+// CreateUser @Summary      Create new user
+// @Description  Register a new user and return basic info
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      request.UserCreate  true  "New user"
+// @Success      201   {object}  response.UserShort
+// @Failure      400   {object}  response.Response
+// @Failure      409   {object}  response.Response
+// @Failure      500   {object}  response.Response
+// @Router       /users [post]
 func (h *Handler) CreateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request.CreateUser
+		var req request.UserCreate
 
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -77,9 +88,18 @@ func (h *Handler) CreateUser() http.HandlerFunc {
 	}
 }
 
+// GetUserByID godoc
+// @Summary      Get user by ID
+// @Description  Get all user info by ID
+// @Tags         users
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  response.User
+// @Failure      404  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Router       /users/{id} [get]
 func (h *Handler) GetUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))
 		if err != nil {
 			return
@@ -111,6 +131,14 @@ func (h *Handler) GetUserByID() http.HandlerFunc {
 	}
 }
 
+// GetUserAll godoc
+// @Summary      Get all users
+// @Description  Get short users info
+// @Tags         users
+// @Produce      json
+// @Success      200  {array}   response.UserShort
+// @Failure      500  {object}  response.Response
+// @Router       /users [get]
 func (h *Handler) GetUserAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		users, err := h.svc.GetAllUsers(r.Context())
@@ -135,6 +163,19 @@ func (h *Handler) GetUserAll() http.HandlerFunc {
 	}
 }
 
+// UpdateUserByID godoc
+// @Summary      Update         user by ID
+// @Description  Updates        user data based on the provided ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int                 true  "User ID"
+// @Param        user body           request.UserUpdate  true  "User update request"
+// @Success      200  {object}  response.UserShort
+// @Failure      400  {object}  response.Response
+// @Failure      404  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Router       /users/{id} [put]
 func (h *Handler) UpdateUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))
@@ -187,6 +228,16 @@ func (h *Handler) UpdateUserByID() http.HandlerFunc {
 	}
 }
 
+// DeleteUserByID godoc
+// @Summary      Delete user by ID
+// @Description  Deletes a user by their unique ID
+// @Tags         users
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      204  "No Content"
+// @Failure      404  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Router       /users/{id} [delete]
 func (h *Handler) DeleteUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))

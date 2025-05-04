@@ -15,6 +15,14 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// @title Auth API
+// @version 1.0
+// @description This is the authentication API service.
+
+// @host localhost:8085
+// @BasePath /
+
+// @schemes http
 func main() {
 	logHandler := slog.NewTextHandler(
 		os.Stdout,
