@@ -10,6 +10,35 @@ import (
 
 type TokenRepository interface {
 	GetUserCredentialsByUsername(ctx context.Context, u *entity.User) error
+	CreateUser(ctx context.Context, u *entity.User) error
+}
+
+func (s *Service) Register(ctx context.Context, u *entity.User) (*entity.Token, error) {
+	const op = "user.service.RegisterUser"
+
+	var err error
+	u.PasswordHash, err = utils.HashPassword(u.PasswordHash)
+	if err != nil {
+		s.log.Error("failed", "op", op, "error", err)
+		return nil, err
+	}
+
+	if err = s.repo.CreateUser(ctx, u); err != nil {
+		s.log.Error("failed to create user", "op", op, "error", err)
+		return nil, err
+	}
+
+	s.log.Debug("user create success", "op", op, "id", u.ID)
+
+	var tokens *entity.Token
+	tokens, err = jwt.GenerateAllTokens(u.ID, u.Role)
+	if err != nil {
+		s.log.Error("failed to generate tokens", "op", op, "error", err)
+		return nil, err
+	}
+
+	s.log.Debug("success", "op", op, "id", u.ID)
+	return tokens, nil
 }
 
 func (s *Service) Login(ctx context.Context, u *entity.User) (*entity.Token, error) {
@@ -30,43 +59,35 @@ func (s *Service) Login(ctx context.Context, u *entity.User) (*entity.Token, err
 		return nil, err
 	}
 
-	token := &entity.Token{}
-	token.AccessToken, err = jwt.GenerateAccessToken(u.ID, u.Role)
+	var tokens *entity.Token
+	tokens, err = jwt.GenerateAllTokens(u.ID, u.Role)
 	if err != nil {
-		s.log.Error("failed to generate access token", "op", op, "error", err)
-		return nil, err
-	}
-
-	token.RefreshToken, err = jwt.GenerateRefreshToken(u.ID, u.Role)
-	if err != nil {
-		s.log.Error("failed to generate refresh token", "op", op, "error", err)
+		s.log.Error("failed to generate tokens", "op", op, "error", err)
 		return nil, err
 	}
 
 	s.log.Debug("success", "op", op, "id", u.ID)
-
-	return token, nil
+	return tokens, nil
 }
 
-func (s *Service) Refresh(token string) (*entity.Token, error) {
+func (s *Service) Refresh(token string) (string, error) {
 	const op = "user.service.RefreshToken"
 
 	claims, err := jwt.GetClaimsRefreshToken(token)
 	if err != nil {
 		s.log.Error("failed to parse refresh token", "op", op, "error", err)
-		return nil, err
+		return "", err
 	}
 
 	s.log.Debug("refresh token success", "op", op, "id", claims.Sub)
 
-	accessToken := &entity.Token{}
-	accessToken.AccessToken, err = jwt.GenerateAccessToken(claims.Sub, claims.Role)
+	var accessToken string
+	accessToken, err = jwt.GenerateAccessToken(claims.Sub, claims.Role)
 	if err != nil {
 		s.log.Error("failed to generate access token", "op", op, "error", err)
-		return nil, err
+		return "", err
 	}
 
 	s.log.Debug("success", "op", op, "id", claims.Sub)
-
 	return accessToken, nil
 }

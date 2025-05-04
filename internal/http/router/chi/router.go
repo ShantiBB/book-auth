@@ -12,6 +12,6 @@ func New(r chi.Router, h *handler.Handler) {
 	r.Use(middleware.URLFormat)
 	r.Use(middleware.Recoverer)
 
-	r.Route("/users", userRouter(h))
 	r.Route("/auth", authRouter(h))
+	r.Route("/users", userRouter(h))
 }

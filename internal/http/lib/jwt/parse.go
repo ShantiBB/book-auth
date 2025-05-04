@@ -22,3 +22,11 @@ func parseToken(tokenStr string, secret []byte) (*entity.Claims, error) {
 
 	return claims, nil
 }
+
+func GetClaimsAccessToken(tokenStr string) (*entity.Claims, error) {
+	return parseToken(tokenStr, accessSecret)
+}
+
+func GetClaimsRefreshToken(tokenStr string) (*entity.Claims, error) {
+	return parseToken(tokenStr, refreshSecret)
+}
