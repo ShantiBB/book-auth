@@ -18,7 +18,7 @@ import (
 type TokenService interface {
 	Register(ctx context.Context, u *entity.User) (*entity.Token, error)
 	Login(ctx context.Context, u *entity.User) (*entity.Token, error)
-	Refresh(token string) (*entity.Token, error)
+	Refresh(token string) (string, error)
 }
 
 func (h *Handler) Register() http.HandlerFunc {
@@ -121,7 +121,7 @@ func (h *Handler) Refresh() http.HandlerFunc {
 			return
 		}
 
-		token, err := h.svc.Refresh(req.RefreshToken)
+		accessToken, err := h.svc.Refresh(req.RefreshToken)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to refresh token"))
@@ -130,7 +130,7 @@ func (h *Handler) Refresh() http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		render.JSON(w, r, response.AccessToken{
-			AccessToken: token.AccessToken,
+			AccessToken: accessToken,
 		})
 	}
 }

@@ -31,11 +31,8 @@ func GenerateRefreshToken(sub int64, role string) (string, error) {
 }
 
 func GenerateAllTokens(sub int64, role string) (*entity.Token, error) {
-	var (
-		err    error
-		tokens *entity.Token
-	)
-
+	var err error
+	tokens := &entity.Token{}
 	tokens.AccessToken, err = GenerateAccessToken(sub, role)
 	if err != nil {
 		return nil, err
