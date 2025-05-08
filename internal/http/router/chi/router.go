@@ -3,7 +3,7 @@ package router
 import (
 	_ "auth/docs"
 	"auth/internal/http/handler"
-	localMW "auth/internal/http/middleware"
+	localMW "auth/internal/http/lib/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

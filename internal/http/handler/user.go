@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"auth/internal/entity"
+	"auth/internal/http/lib/permission"
 	"auth/internal/http/lib/schema/request"
 	"auth/internal/http/lib/schema/response"
 	"auth/internal/http/lib/utils"
@@ -47,6 +48,13 @@ func (h *Handler) CreateUser() http.HandlerFunc {
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("failed to render"))
+			return
+		}
+
+		if !permission.Admin(r.Context()) {
+			w.WriteHeader(http.StatusForbidden)
+			render.JSON(w, r, response.Error("forbidden"))
+
 			return
 		}
 
@@ -101,10 +109,19 @@ func (h *Handler) CreateUser() http.HandlerFunc {
 // @Failure      404  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Router       /users/{id} [get]
+// @Security     BearerAuth
 func (h *Handler) GetUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))
 		if err != nil {
+			return
+		}
+
+		ctx := r.Context()
+		if !(permission.Admin(ctx) || permission.Moderator(ctx) || permission.UserOwn(ctx, id)) {
+			w.WriteHeader(http.StatusForbidden)
+			render.JSON(w, r, response.Error("forbidden"))
+
 			return
 		}
 
@@ -134,6 +151,38 @@ func (h *Handler) GetUserByID() http.HandlerFunc {
 	}
 }
 
+// GetUserMe   godoc
+// @Summary      Get current user
+// @Description  Get all current user info
+// @Tags         users
+// @Produce      json
+// @Success      200  {object}  response.User
+// @Failure      500  {object}  response.Response
+// @Router       /users/me [get]
+// @Security     BearerAuth
+func (h *Handler) GetUserMe() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("userID").(int64)
+		user := &entity.User{ID: id}
+
+		if err := h.svc.GetUserByID(r.Context(), user); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			render.JSON(w, r, response.Error("failed to get user"))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		render.JSON(w, r, response.User{
+			ID:        user.ID,
+			Username:  user.Username,
+			Email:     user.Email,
+			Role:      user.Role,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		})
+	}
+}
+
 // GetUserAll godoc
 // @Summary      Get all users
 // @Description  Get short users info
@@ -142,8 +191,16 @@ func (h *Handler) GetUserByID() http.HandlerFunc {
 // @Success      200  {array}   response.UserShort
 // @Failure      500  {object}  response.Response
 // @Router       /users [get]
+// @Security     BearerAuth
 func (h *Handler) GetUserAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !(permission.Admin(r.Context()) || permission.Moderator(r.Context())) {
+			w.WriteHeader(http.StatusForbidden)
+			render.JSON(w, r, response.Error("forbidden"))
+
+			return
+		}
+
 		users, err := h.svc.GetAllUsers(r.Context())
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -256,6 +313,13 @@ func (h *Handler) DeleteUserByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := utils.ParseID(w, r, chi.URLParam(r, "id"))
 		if err != nil {
+			return
+		}
+
+		if !permission.Admin(r.Context()) {
+			w.WriteHeader(http.StatusForbidden)
+			render.JSON(w, r, response.Error("forbidden"))
+
 			return
 		}
 

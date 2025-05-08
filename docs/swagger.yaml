@@ -214,6 +214,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
       summary: Get all users
       tags:
       - users
@@ -310,6 +312,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - users
@@ -355,6 +359,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Update         user by ID
+      tags:
+      - users
+  /users/me:
+    get:
+      description: Get all current user info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.User'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get current user
       tags:
       - users
 schemes:
