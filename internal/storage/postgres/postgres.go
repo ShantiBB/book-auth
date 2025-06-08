@@ -10,7 +10,7 @@ import (
 
 func NewPool(log *slog.Logger) (*pgxpool.Pool, error) {
 	ctx := context.Background()
-	postgresURL := "postgres://postgres:1221@localhost:5432/users?sslmode=disable"
+	postgresURL := "postgres://postgres:1221@localhost:5432/auth?sslmode=disable"
 
 	cfg, err := pgxpool.ParseConfig(postgresURL)
 	if err != nil {
