@@ -73,6 +73,7 @@ func (h *Handler) CreateUser() http.HandlerFunc {
 		user := &entity.User{
 			Username:     req.Username,
 			Email:        req.Email,
+			Age:          req.Age,
 			PasswordHash: req.Password,
 		}
 
@@ -94,6 +95,7 @@ func (h *Handler) CreateUser() http.HandlerFunc {
 			ID:       user.ID,
 			Username: user.Username,
 			Email:    user.Email,
+			Age:      user.Age,
 			Role:     user.Role,
 		})
 	}
@@ -144,6 +146,7 @@ func (h *Handler) GetUserByID() http.HandlerFunc {
 			ID:        user.ID,
 			Username:  user.Username,
 			Email:     user.Email,
+			Age:       user.Age,
 			Role:      user.Role,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
@@ -176,6 +179,7 @@ func (h *Handler) GetUserMe() http.HandlerFunc {
 			ID:        user.ID,
 			Username:  user.Username,
 			Email:     user.Email,
+			Age:       user.Age,
 			Role:      user.Role,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
@@ -214,6 +218,7 @@ func (h *Handler) GetUserAll() http.HandlerFunc {
 				ID:       user.ID,
 				Username: user.Username,
 				Email:    user.Email,
+				Age:      user.Age,
 				Role:     user.Role,
 			})
 		}
@@ -264,6 +269,7 @@ func (h *Handler) UpdateUserByID() http.HandlerFunc {
 		user := &entity.User{
 			ID:       id,
 			Username: req.Username,
+			Age:      req.Age,
 			Email:    req.Email,
 		}
 
@@ -292,6 +298,7 @@ func (h *Handler) UpdateUserByID() http.HandlerFunc {
 			ID:       user.ID,
 			Username: user.Username,
 			Email:    user.Email,
+			Age:      req.Age,
 			Role:     user.Role,
 		})
 	}

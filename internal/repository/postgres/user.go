@@ -12,10 +12,10 @@ import (
 )
 
 func (r *Repository) CreateUser(ctx context.Context, u *entity.User) error {
-	query := `INSERT INTO users (username, email, password_hash)
-			  VALUES ($1, $2, $3) RETURNING id, role`
+	query := `INSERT INTO users (username, email, age, password_hash)
+			  VALUES ($1, $2, $3, $4) RETURNING id, role`
 
-	err := r.db.QueryRow(ctx, query, u.Username, u.Email, u.PasswordHash).Scan(&u.ID, &u.Role)
+	err := r.db.QueryRow(ctx, query, u.Username, u.Email, u.Age, u.PasswordHash).Scan(&u.ID, &u.Role)
 
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
@@ -43,12 +43,13 @@ func (r *Repository) GetUserCredentialsByUsername(ctx context.Context, u *entity
 }
 
 func (r *Repository) GetUserByID(ctx context.Context, u *entity.User) error {
-	query := `SELECT username, email, role, created_at, updated_at
+	query := `SELECT username, email, age, role, created_at, updated_at
 			  FROM users WHERE id = $1`
 
 	err := r.db.QueryRow(ctx, query, u.ID).Scan(
 		&u.Username,
 		&u.Email,
+		&u.Age,
 		&u.Role,
 		&u.CreatedAt,
 		&u.UpdatedAt,
@@ -62,7 +63,7 @@ func (r *Repository) GetUserByID(ctx context.Context, u *entity.User) error {
 }
 
 func (r *Repository) GetAllUsers(ctx context.Context) ([]*entity.User, error) {
-	query := `SELECT id, username, email, role
+	query := `SELECT id, username, email, age, role
 			  FROM users`
 
 	rows, err := r.db.Query(ctx, query)
@@ -76,7 +77,7 @@ func (r *Repository) GetAllUsers(ctx context.Context) ([]*entity.User, error) {
 
 	for rows.Next() {
 		var u entity.User
-		if err = rows.Scan(&u.ID, &u.Username, &u.Email, &u.Role); err != nil {
+		if err = rows.Scan(&u.ID, &u.Username, &u.Email, &u.Age, &u.Role); err != nil {
 			return nil, err
 		}
 
@@ -92,11 +93,11 @@ func (r *Repository) GetAllUsers(ctx context.Context) ([]*entity.User, error) {
 
 func (r *Repository) UpdateUserByID(ctx context.Context, u *entity.User) error {
 	query := `UPDATE users 
-			  SET username = $1, email = $2, updated_at = NOW()
+			  SET username = $1, email = $2, age = $3, updated_at = NOW()
 			  WHERE id = $3
 			  RETURNING role`
 
-	err := r.db.QueryRow(ctx, query, u.Username, u.Email, u.ID).Scan(&u.Role)
+	err := r.db.QueryRow(ctx, query, u.Username, u.Email, u.Age).Scan(&u.Role)
 
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
