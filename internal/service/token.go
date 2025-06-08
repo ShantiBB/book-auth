@@ -14,7 +14,7 @@ type TokenRepository interface {
 }
 
 func (s *Service) Register(ctx context.Context, u *entity.User) (*entity.Token, error) {
-	const op = "user.service.RegisterUser"
+	const op = "user.service.Register"
 
 	var err error
 	u.PasswordHash, err = utils.HashPassword(u.PasswordHash)
